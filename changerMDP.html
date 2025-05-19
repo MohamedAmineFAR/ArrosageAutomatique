@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Arrosage Automatique - Modifier mot de passe</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .gradient-custom {
+      background: linear-gradient(120deg, #184e77, #1e6091);
+      background-size: 200% 200%;
+      animation: bgMove 10s ease infinite;
+    }
+
+    @keyframes bgMove {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .glass-panel {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    }
+
+    .glow-text {
+      text-shadow: 0 0 10px rgba(186, 230, 253, 0.4);
+    }
+
+    .error {
+      color: #c00;
+      font-size: 0.9rem;
+    }
+
+    .success {
+      color: #080;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body class="gradient-custom min-h-screen text-sky-100">
+
+  <!-- Header -->
+  <header class="fixed top-0 left-0 right-0 bg-sky-900/50 backdrop-blur-md z-50">
+    <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+      <h1 class="text-3xl font-bold glow-text">Arrosage Automatique</h1>
+      <nav class="flex space-x-6">
+        <a href="statistiques.html" class="text-sky-300 hover:text-sky-400">Statistiques</a>
+        <a href="mail.html"           class="text-sky-300 hover:text-sky-400">Mail</a>
+        <a href="tableau-bord.html"     class="text-sky-300 hover:text-sky-400">Tableau de bord</a>
+        <button onclick="endSession()" class="text-red-400 hover:text-red-300">Déconnexion</button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="pt-24 px-6 pb-6">
+    <div class="container mx-auto max-w-lg">
+      <div class="glass-panel rounded-xl p-6">
+        <h2 class="text-2xl font-semibold mb-4 glow-text">Modifier votre mot de passe</h2>
+        <form id="formulaireMotDePasse" class="flex flex-col gap-4">
+
+          <div>
+            <label for="ancienMotDePasse" class="block mb-1">Ancien mot de passe :</label>
+            <input
+              type="password"
+              id="ancienMotDePasse"
+              class="w-full p-2 rounded bg-sky-800 bg-opacity-50 border border-sky-400 focus:outline-none"
+              required
+            />
+          </div>
+
+          <div>
+            <label for="nouveauMotDePasse" class="block mb-1">Nouveau mot de passe :</label>
+            <input
+              type="password"
+              id="nouveauMotDePasse"
+              class="w-full p-2 rounded bg-sky-800 bg-opacity-50 border border-sky-400 focus:outline-none"
+              required
+            />
+          </div>
+
+          <div>
+            <label for="confirmationMotDePasse" class="block mb-1">Confirmer le nouveau mot de passe :</label>
+            <input
+              type="password"
+              id="confirmationMotDePasse"
+              class="w-full p-2 rounded bg-sky-800 bg-opacity-50 border border-sky-400 focus:outline-none"
+              required
+            />
+          </div>
+
+          <button
+            type="submit"
+            class="mt-2 bg-sky-800 text-sky-100 px-4 py-2 rounded hover:bg-sky-700"
+          >
+            Valider
+          </button>
+
+        </form>
+
+        <p id="message" class="mt-4 error" style="display: none;"></p>
+      </div>
+    </div>
+  </main>
+
+  <!-- Scripts -->
+  <script>
+    function endSession() {
+      localStorage.removeItem("sessionToken");
+      window.location.href = "connexion.html";
+    }
+
+    function checkSession() {
+      const token = localStorage.getItem("sessionToken");
+      if (!token) {
+        window.location.href = "connexion.html";
+      }
+      return token;
+    }
+
+    document.getElementById('formulaireMotDePasse').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const ancien       = document.getElementById('ancienMotDePasse').value.trim();
+      const nouveau      = document.getElementById('nouveauMotDePasse').value;
+      const confirmation = document.getElementById('confirmationMotDePasse').value;
+      const msgElem      = document.getElementById('message');
+
+      msgElem.style.display = 'none';
+      msgElem.className    = 'error';
+
+      // Vérification des champs
+      if (!ancien || !nouveau || !confirmation) {
+        msgElem.textContent   = 'Tous les champs sont obligatoires.';
+        msgElem.style.display = 'block';
+        return;
+      }
+
+      if (nouveau !== confirmation) {
+        msgElem.textContent   = 'Le nouveau mot de passe et sa confirmation ne correspondent pas.';
+        msgElem.style.display = 'block';
+        return;
+      }
+
+      const token = checkSession();
+      const payload = {
+        id: "Admin",
+        ancienMDP: ancien,
+        newMDP: nouveau
+      };
+
+      fetch('http://192.168.5.199:3005/ModifierMDP', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(payload)
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Erreur HTTP ' + response.status);
+        }
+        return response.json();
+      })
+      .then(data => {
+        msgElem.className = 'success';
+        const messageRecue = data.message || '';
+        msgElem.textContent = messageRecue;
+        msgElem.style.display = 'block';
+
+        if (messageRecue === 'Mot de passe modifié avec succès') {
+          setTimeout(() => {
+            window.location.href = 'tableau-bord.html';
+          }, 2000);
+        }
+      })
+      .catch(error => {
+        msgElem.className = 'error';
+        msgElem.textContent = 'Erreur : ' + error.message;
+        msgElem.style.display = 'block';
+      });
+    });
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,22 @@
+{
+  "name": "arrosage-auto",
+  "version": "1.0.0",
+  "description": "Système d'arrosage automatique",
+  "main": "proxy.js",
+  "dependencies": {
+    "ws": "^8.18.1"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.3",
+    "tailwindcss": "^3.4.17"
+  },
+  "scripts": {
+    "start": "node proxy.js",
+    "dev": "tailwindcss -i ./src/input.css -o ./dist/style.css --watch",
+    "build": "tailwindcss -i ./src/input.css -o ./dist/style.css --minify"
+  },
+  "keywords": ["monitoring", "environment", "dashboard"],
+  "author": "Arrosage Auto Team",
+  "license": "MIT"
+}
