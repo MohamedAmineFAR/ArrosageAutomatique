@@ -2,8 +2,8 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>Arrosage Automatique - Authentification</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Arrosage Automatique - Connexion</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     .gradient-custom {
@@ -11,55 +11,74 @@
       background-size: 200% 200%;
       animation: bgMove 10s ease infinite;
     }
-
     @keyframes bgMove {
       0% { background-position: 0% 50%; }
       50% { background-position: 100% 50%; }
       100% { background-position: 0% 50%; }
     }
-
     .glass-panel {
       background: rgba(255, 255, 255, 0.1);
       border: 1px solid rgba(255, 255, 255, 0.2);
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
     }
+    .glow-text {
+      text-shadow: 0 0 10px rgba(186, 230, 253, 0.4);
+    }
   </style>
 </head>
-<body class="gradient-custom min-h-screen flex items-center justify-center">
-  <form id="loginForm" class="bg-white text-black p-8 rounded-lg shadow-lg w-full max-w-md space-y-6">
-    <h2 class="text-2xl font-bold text-center text-blue-900">Connexion</h2>
-    <div>
-      <label for="username" class="block mb-1">Nom d'utilisateur</label>
-      <input type="text" id="username" required class="w-full px-4 py-2 border rounded-md" />
-    </div>
-    <div>
-      <label for="password" class="block mb-1">Mot de passe</label>
-      <input type="password" id="password" required class="w-full px-4 py-2 border rounded-md" />
-    </div>
-    <button type="submit" class="w-full bg-blue-700 text-white py-2 rounded-md hover:bg-blue-800 transition-all">
-      Se connecter
-    </button>
-    <p id="errorMessage" class="text-center text-red-500 hidden">Identifiants incorrects</p>
-  </form>
+<body class="gradient-custom min-h-screen text-sky-100 flex items-center justify-center">
+
+  <div class="glass-panel rounded-xl p-8 w-full max-w-md">
+    <h2 class="text-2xl font-bold text-center glow-text mb-6">Connexion</h2>
+    <form id="loginForm" class="space-y-6">
+      <div>
+        <label for="username" class="block mb-1 text-sky-200">Nom d'utilisateur</label>
+        <input type="text" id="username" required
+               class="w-full px-4 py-2 rounded-md bg-white bg-opacity-20 border border-sky-400 text-sky-100 focus:ring-2 focus:ring-sky-300 outline-none" />
+      </div>
+      <div>
+        <label for="password" class="block mb-1 text-sky-200">Mot de passe</label>
+        <div class="relative">
+          <input type="password" id="password" required
+                 class="w-full px-4 py-2 rounded-md bg-white bg-opacity-20 border border-sky-400 text-sky-100 focus:ring-2 focus:ring-sky-300 outline-none" />
+          <button type="button" id="togglePassword"
+                  class="absolute inset-y-0 right-3 flex items-center text-sky-300 hover:text-sky-100">
+            👁️
+          </button>
+        </div>
+      </div>
+      <button type="submit" class="w-full bg-sky-700 text-white py-2 rounded-md hover:bg-sky-800 transition-all">
+        Se connecter
+      </button>
+      <p id="errorMessage" class="text-center text-red-400 hidden">Identifiants incorrects</p>
+    </form>
+  </div>
 
   <script>
     const loginForm = document.getElementById("loginForm");
     const errorMessage = document.getElementById("errorMessage");
+    const togglePassword = document.getElementById('togglePassword');
+    const passwordInput = document.getElementById('password');
+
+    // Basculer l'affichage du mot de passe
+    togglePassword.addEventListener('click', () => {
+      const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+      passwordInput.setAttribute('type', type);
+      // Optionnel: changer l'icône
+      togglePassword.textContent = type === 'password' ? '👁️' : '🚫';
+    });
 
     loginForm.addEventListener("submit", async function (e) {
       e.preventDefault();
       const username = document.getElementById("username").value;
-      const password = document.getElementById("password").value;
-
+      const password = passwordInput.value;
       try {
-        const res = await fetch("http://192.168.5.199:3005/Connexion", {
+        const res = await fetch("http://192.168.5.199:3005/connexion", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ id: username, mdp: password })
         });
-
         const data = await res.json();
-
         if (res.ok && data.token) {
           localStorage.setItem("sessionToken", data.token);
           window.location.href = "tableau-bord.html";
@@ -73,5 +92,6 @@
       }
     });
   </script>
+
 </body>
 </html>

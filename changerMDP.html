@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Arrosage Automatique - Modifier mot de passe</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
@@ -37,6 +37,30 @@
       color: #080;
       font-size: 0.9rem;
     }
+
+    /* Container pour champ + bouton afficher */
+    .password-container {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .password-container input[type="password"],
+    .password-container input[type="text"] {
+      flex: 1;
+      padding-right: 2.5rem; /* espace pour bouton */
+    }
+
+    .toggle-visibility {
+      position: absolute;
+      right: 0.5rem;
+      background: none;
+      border: none;
+      color: #bae6fd;
+      cursor: pointer;
+      font-size: 1.2rem;
+      user-select: none;
+    }
   </style>
 </head>
 <body class="gradient-custom min-h-screen text-sky-100">
@@ -48,7 +72,7 @@
       <nav class="flex space-x-6">
         <a href="statistiques.html" class="text-sky-300 hover:text-sky-400">Statistiques</a>
         <a href="mail.html"           class="text-sky-300 hover:text-sky-400">Mail</a>
-        <a href="tableau-bord.html"     class="text-sky-300 hover:text-sky-400">Tableau de bord</a>
+        <a href="tableau-bord.html"  class="text-sky-300 hover:text-sky-400">Tableau de bord</a>
         <button onclick="endSession()" class="text-red-400 hover:text-red-300">Déconnexion</button>
       </nav>
     </div>
@@ -63,32 +87,41 @@
 
           <div>
             <label for="ancienMotDePasse" class="block mb-1">Ancien mot de passe :</label>
-            <input
-              type="password"
-              id="ancienMotDePasse"
-              class="w-full p-2 rounded bg-sky-800 bg-opacity-50 border border-sky-400 focus:outline-none"
-              required
-            />
+            <div class="password-container">
+              <input
+                type="password"
+                id="ancienMotDePasse"
+                class="w-full p-2 rounded bg-sky-800 bg-opacity-50 border border-sky-400 focus:outline-none"
+                required
+              />
+              <button type="button" class="toggle-visibility" data-target="ancienMotDePasse" aria-label="Afficher/Masquer mot de passe">👁️</button>
+            </div>
           </div>
 
           <div>
             <label for="nouveauMotDePasse" class="block mb-1">Nouveau mot de passe :</label>
-            <input
-              type="password"
-              id="nouveauMotDePasse"
-              class="w-full p-2 rounded bg-sky-800 bg-opacity-50 border border-sky-400 focus:outline-none"
-              required
-            />
+            <div class="password-container">
+              <input
+                type="password"
+                id="nouveauMotDePasse"
+                class="w-full p-2 rounded bg-sky-800 bg-opacity-50 border border-sky-400 focus:outline-none"
+                required
+              />
+              <button type="button" class="toggle-visibility" data-target="nouveauMotDePasse" aria-label="Afficher/Masquer mot de passe">👁️</button>
+            </div>
           </div>
 
           <div>
             <label for="confirmationMotDePasse" class="block mb-1">Confirmer le nouveau mot de passe :</label>
-            <input
-              type="password"
-              id="confirmationMotDePasse"
-              class="w-full p-2 rounded bg-sky-800 bg-opacity-50 border border-sky-400 focus:outline-none"
-              required
-            />
+            <div class="password-container">
+              <input
+                type="password"
+                id="confirmationMotDePasse"
+                class="w-full p-2 rounded bg-sky-800 bg-opacity-50 border border-sky-400 focus:outline-none"
+                required
+              />
+              <button type="button" class="toggle-visibility" data-target="confirmationMotDePasse" aria-label="Afficher/Masquer mot de passe">👁️</button>
+            </div>
           </div>
 
           <button
@@ -119,6 +152,21 @@
       }
       return token;
     }
+
+    // Gestion des boutons "Afficher / Masquer"
+    document.querySelectorAll('.toggle-visibility').forEach(button => {
+      button.addEventListener('click', () => {
+        const targetId = button.getAttribute('data-target');
+        const input = document.getElementById(targetId);
+        if (input.type === 'password') {
+          input.type = 'text';
+          button.textContent = '*';
+        } else {
+          input.type = 'password';
+          button.textContent = '👁️';
+        }
+      });
+    });
 
     document.getElementById('formulaireMotDePasse').addEventListener('submit', function(e) {
       e.preventDefault();
@@ -151,7 +199,7 @@
         newMDP: nouveau
       };
 
-      fetch('http://192.168.5.199:3005/ModifierMDP', {
+      fetch('http://192.168.5.199:3005/modifier-mdp', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

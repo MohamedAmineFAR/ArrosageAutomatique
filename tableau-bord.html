@@ -1,264 +1,275 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Arrosage Automatique - Tableau de bord</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/raphael@2.3.0/raphael.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/justgage@1.3.2/justgage.min.js"></script>
-    <style>
-        .gradient-custom {
-            background: linear-gradient(120deg, #184e77, #1e6091);
-            background-size: 200% 200%;
-            animation: bgMove 10s ease infinite;
-        }
-        @keyframes bgMove {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-        .glass-panel {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-        }
-        .glow-text {
-            text-shadow: 0 0 10px rgba(186, 230, 253, 0.4);
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Arrosage Automatique - Tableau de bord</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/raphael@2.3.0/raphael.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/justgage@1.3.2/justgage.min.js"></script>
+  <style>
+    .gradient-custom {
+      background: linear-gradient(120deg, #184e77, #1e6091);
+      background-size: 200% 200%;
+      animation: bgMove 10s ease infinite;
+    }
+    @keyframes bgMove {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    .glass-panel {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    }
+    .glow-text {
+      text-shadow: 0 0 10px rgba(186, 230, 253, 0.4);
+    }
+  </style>
 </head>
 <body class="gradient-custom min-h-screen text-sky-100">
-    <!-- Header -->
-    <header class="fixed top-0 left-0 right-0 bg-sky-900/50 backdrop-blur-md z-50">
-        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
-            <h1 class="text-3xl font-bold glow-text">Arrosage Automatique</h1>
-            <nav class="flex space-x-6">
-                <a href="statistiques.html" class="text-sky-300 hover:text-sky-400">Statistiques</a>
-                <a href="mail.html" class="text-sky-300 hover:text-sky-400">Mail</a>
-                <a href="changerMDP.html" class="text-sky-300 hover:text-sky-400">Changer mot de passe</a>
-                <button onclick="endSession()" class="text-red-400 hover:text-red-300">Déconnexion</button>
-            </div>
+  <!-- Header -->
+  <header class="fixed top-0 left-0 right-0 bg-sky-900/50 backdrop-blur-md z-50">
+    <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+      <h1 class="text-3xl font-bold glow-text">Arrosage Automatique</h1>
+      <nav class="flex space-x-6">
+        <a href="statistiques.html" class="text-sky-300 hover:text-sky-400">Statistiques</a>
+        <a href="mail.html" class="text-sky-300 hover:text-sky-400">Mail</a>
+        <a href="changerMDP.html" class="text-sky-300 hover:text-sky-400">Changer mot de passe</a>
+        <button onclick="endSession()" class="text-red-400 hover:text-red-300">Déconnexion</button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="pt-24 px-6 pb-6">
+    <div class="container mx-auto">
+
+      <!-- Control Panel -->
+      <div class="glass-panel rounded-xl p-6 mb-8">
+        <div class="flex flex-wrap gap-4 items-center justify-between">
+          <div class="space-y-2">
+            <h2 class="text-xl font-semibold glow-text">Panneau de contrôle</h2>
+            <p id="modeStatus" class="text-sky-400">État actuel : Non défini</p>
+            <p id="actionStatus" class="text-sky-400">Etat : Non défini</p>
+          </div>
+          <div class="flex gap-4">
+            <button id="btnAuto" class="bg-sky-800 text-sky-300 px-6 py-3 rounded-lg hover:bg-sky-700">Mode Automatique</button>
+            <button id="btnManual" class="bg-blue-800 text-blue-300 px-6 py-3 rounded-lg hover:bg-blue-700">Mode Manuel</button>
+          </div>
         </div>
-    </header>
-
-    <!-- Main Content -->
-    <main class="pt-24 px-6 pb-6">
-        <div class="container mx-auto">
-
-            <!-- Control Panel -->
-            <div class="glass-panel rounded-xl p-6 mb-8">
-                <div class="flex flex-wrap gap-4 items-center justify-between">
-                    <div class="space-y-2">
-                        <h2 class="text-xl font-semibold glow-text">Panneau de contrôle</h2>
-                        <p id="modeStatus" class="text-sky-400">État actuel : Non défini</p>
-                        <!-- Nouveau paragraphe pour l'état pompe -->
-                        <p id="actionStatus" class="text-sky-400">Etat : Non défini</p>
-                    </div>
-                    <div class="flex gap-4">
-                        <button id="btnAuto" class="bg-sky-800 text-sky-300 px-6 py-3 rounded-lg hover:bg-sky-700">Mode Automatique</button>
-                        <button id="btnManual" class="bg-blue-800 text-blue-300 px-6 py-3 rounded-lg hover:bg-blue-700">Mode Manuel</button>
-                    </div>
-                </div>
-                <div id="manualPanel" class="mt-6 hidden">
-                    <button id="btnToggle" class="bg-blue-900 text-blue-300 px-6 py-3 rounded-lg" disabled>Activer</button>
-                </div>
-            </div>
-
-            <!-- Gauges and Sensor Panel -->
-            <div class="grid grid-cols-3 gap-8 mb-8">
-
-                <div class="glass-panel rounded-xl p-6">
-                    <h3 class="text-lg font-semibold mb-4 glow-text">Niveau d'humidité</h3>
-                    <div id="moistureGauge"></div>
-                </div>
-
-                <div class="glass-panel rounded-xl p-6">
-                    <h3 class="text-lg font-semibold mb-4 glow-text">Débit d'eau</h3>
-                    <div id="flowGauge"></div>
-                </div>
-
-                <div class="glass-panel rounded-xl p-6">
-                    <h3 class="text-lg font-semibold mb-4 glow-text">Niveau d'eau</h3>
-                    <div class="flex flex-col space-y-4 mt-4">
-                        <div class="flex items-center justify-between p-2 bg-sky-800 bg-opacity-20 rounded-lg">
-                            <span class="text-sky-300">Eau dans la cuve</span>
-                            <span id="capteur1-bubble" class="inline-block w-4 h-4 rounded-full bg-red-500"></span>
-                        </div>
-                        <div class="flex items-center justify-between p-2 bg-sky-800 bg-opacity-20 rounded-lg">
-                            <span class="text-sky-300">Contenu > 500 L</span>
-                            <span id="capteur2-bubble" class="inline-block w-4 h-4 rounded-full bg-red-500"></span>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-
-            <!-- Activity Log -->
-            <div class="glass-panel rounded-xl p-6 mt-8">
-                <h2 class="text-xl font-semibold mb-4 glow-text">Journal d'activité</h2>
-                <div id="logContainer" class="h-64 overflow-y-auto space-y-2 font-mono text-sm"></div>
-            </div>
-
+        <div id="manualPanel" class="mt-6 hidden">
+          <button id="btnToggle" class="bg-blue-900 text-blue-300 px-6 py-3 rounded-lg" disabled>Activer</button>
         </div>
-    </main>
+      </div>
 
-    <!-- Scripts -->
-    <script>
-        let socket = null;
-        let mode = "auto";
-        let currentAction = "";
-        let moistureGauge, flowGauge;
+      <!-- Gauges and Sensor Panel -->
+      <div class="grid grid-cols-3 gap-8 mb-8">
 
-        function checkSession() {
-            const token = localStorage.getItem("sessionToken");
-            if (!token) window.location.href = "connexion.html";
-            return token;
+        <div class="glass-panel rounded-xl p-6">
+          <h3 class="text-lg font-semibold mb-4 glow-text">Niveau d'humidité</h3>
+          <div id="moistureGauge"></div>
+        </div>
+
+        <div class="glass-panel rounded-xl p-6">
+          <h3 class="text-lg font-semibold mb-4 glow-text">Débit d'eau</h3>
+          <div id="flowGauge"></div>
+        </div>
+
+        <div class="glass-panel rounded-xl p-6">
+          <h3 class="text-lg font-semibold mb-4 glow-text">Niveau d'eau</h3>
+          <div class="flex flex-col space-y-4 mt-4">
+            <div class="flex items-center justify-between p-2 bg-sky-800 bg-opacity-20 rounded-lg">
+              <span class="text-sky-300">Eau dans la cuve</span>
+              <span id="capteur1-bubble" class="inline-block w-4 h-4 rounded-full bg-red-500"></span>
+            </div>
+            <div class="flex items-center justify-between p-2 bg-sky-800 bg-opacity-20 rounded-lg">
+              <span class="text-sky-300">Contenu &gt; 500 L</span>
+              <span id="capteur2-bubble" class="inline-block w-4 h-4 rounded-full bg-red-500"></span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Activity Log -->
+      <div class="glass-panel rounded-xl p-6 mt-8">
+        <h2 class="text-xl font-semibold mb-4 glow-text">Journal d'activité</h2>
+        <div id="logContainer" class="h-64 overflow-y-auto space-y-2 font-mono text-sm"></div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Scripts -->
+  <script>
+    let socket = null;
+    let mode = "auto";
+    let currentAction = "";
+    let moistureGauge, flowGauge;
+
+    function checkSession() {
+      const token = localStorage.getItem("sessionToken");
+      if (!token) window.location.href = "connexion.html";
+      return token;
+    }
+
+    function endSession() {
+      localStorage.removeItem("sessionToken");
+      window.location.href = "connexion.html";
+    }
+
+    function initWebSocket() {
+      const token = checkSession();
+      socket = new WebSocket('ws://localhost:3007');
+      socket.onopen = () => {
+        console.log("WebSocket connectée");
+        socket.send(JSON.stringify({ type: "auth", token }));
+      };
+      socket.onmessage = (event) => {
+        if (event.data instanceof Blob) {
+          const reader = new FileReader();
+          reader.onload = () => processMessage(reader.result);
+          reader.readAsText(event.data);
+        } else {
+          processMessage(event.data);
         }
+      };
+      socket.onerror = (e) => console.error("WebSocket erreur :", e);
+      socket.onclose = () => console.warn("WebSocket fermée");
+    }
 
-        function endSession() {
-            localStorage.removeItem("sessionToken");
-            window.location.href = "connexion.html";
+    function processMessage(message) {
+      const logContainer = document.getElementById("logContainer");
+      logContainer.innerHTML += `<div class="bg-white/10 px-2 py-1 rounded">${message}</div>`;
+      logContainer.scrollTop = logContainer.scrollHeight;
+
+      try {
+        const msg = JSON.parse(message);
+
+        if (msg.mode) {
+          mode = msg.mode;
+          updateUI();
         }
-
-        function initWebSocket() {
-            const token = checkSession();
-            socket = new WebSocket('ws://localhost:3007');
-            socket.onopen = () => {
-                console.log("WebSocket connectée");
-                socket.send(JSON.stringify({ type: "auth", token }));
-            };
-            socket.onmessage = (event) => {
-                if (event.data instanceof Blob) {
-                    const reader = new FileReader();
-                    reader.onload = () => processMessage(reader.result);
-                    reader.readAsText(event.data);
-                } else {
-                    processMessage(event.data);
-                }
-            };
-            socket.onerror = (e) => console.error("WebSocket erreur :", e);
-            socket.onclose = () => console.warn("WebSocket fermée");
+        if (msg.etat) {
+          currentAction = msg.etat;
+          updateEtatPompe();
+          // On réactive le bouton dès qu'on reçoit la confirmation du serveur
+          document.getElementById("btnToggle").disabled = false;
         }
-
-        function processMessage(message) {
-            const logContainer = document.getElementById("logContainer");
-            logContainer.innerHTML += `<div class="bg-white/10 px-2 py-1 rounded">${message}</div>`;
-            logContainer.scrollTop = logContainer.scrollHeight;
-
-            try {
-                const msg = JSON.parse(message);
-
-                if (msg.mode) {
-                    mode = msg.mode;
-                    updateUI();
-                }
-                if (msg.etat) {
-                    currentAction = msg.etat;
-                    updateEtatPompe();
-                }
-                if (msg.dernieresDonnees) {
-                    msg.dernieresDonnees.forEach(entry => {
-                        updateCapteurs(entry);
-                        updateGauges(entry);
-                    });
-                }
-                const donnees = msg.donnees || msg['données'];
-                if (donnees) {
-                    updateCapteurs(donnees);
-                    updateGauges(donnees);
-                }
-            } catch (e) {
-                console.warn("Message invalide :", message);
-            }
+        // Gérer anciennes et nouvelles clés
+        const entries = msg.dernieresDonnees || msg.donnees || msg['données'];
+        if (Array.isArray(entries)) {
+          entries.forEach(updateEntry);
+        } else if (entries) {
+          updateEntry(entries);
         }
+      } catch (e) {
+        console.warn("Message invalide :", message);
+      }
+    }
 
-        function initDashboard() {
-            const gaugeConfig = {
-                width: 300,
-                height: 200,
-                valueFontColor: "#bae6fd",
-                labelFontColor: "#bae6fd",
-                gaugeColor: "#082f49"
-            };
+    function updateEntry(entry) {
+      updateCapteurs(entry);
+      updateGauges(entry);
+    }
 
-            moistureGauge = new JustGage({
-                ...gaugeConfig,
-                id: "moistureGauge",
-                value: 0,
-                min: 0,
-                max: 100,
-                title: "Humidité",
-                label: "%",
-                customSectors: {
-                    percents: false,
-                    ranges: [
-                        { color: "#ff0000", lo: 0, hi: 40 },
-                        { color: "#ff9900", lo: 40, hi: 70 },
-                        { color: "#00ff00", lo: 70, hi:100 }
-                    ]
-                },
-                levelColorsGradient: true
-            });
+    function initDashboard() {
+      const gaugeConfig = {
+        width: 300,
+        height: 200,
+        valueFontColor: "#bae6fd",
+        labelFontColor: "#bae6fd",
+        gaugeColor: "#082f49"
+      };
 
-            flowGauge = new JustGage({
-                ...gaugeConfig,
-                id: "flowGauge",
-                value: 0,
-                min: 0,
-                max: 200,
-                title: "Débit",
-                label: "L/min"
-            });
+      moistureGauge = new JustGage({
+        ...gaugeConfig,
+        id: "moistureGauge",
+        value: 0,
+        min: 0,
+        max: 100,
+        title: "Humidité",
+        label: "%"
+      });
 
-            document.getElementById("btnAuto").onclick = () => {
-                mode = "auto";
-                updateUI();
-                socket.send(JSON.stringify({ mode }));
-            };
-            document.getElementById("btnManual").onclick = () => {
-                mode = "manuel";
-                updateUI();
-                socket.send(JSON.stringify({ mode }));
-            };
-            document.getElementById("btnToggle").onclick = () => {
-                const action = currentAction === "activer" ? "desactiver" : "activer";
-                // Envoi au serveur uniquement; l'UI sera mise à jour à la réception de msg.etat
-                socket.send(JSON.stringify({ mode, action }));
-            };
+      flowGauge = new JustGage({
+        ...gaugeConfig,
+        id: "flowGauge",
+        value: 0,
+        min: 0,
+        max: 200,
+        title: "Débit",
+        label: "L/min"
+      });
+
+      document.getElementById("btnAuto").onclick = () => {
+        mode = "auto";
+        updateUI();
+        socket.send(JSON.stringify({ mode }));
+      };
+      document.getElementById("btnManual").onclick = () => {
+        mode = "manuel";
+        updateUI();
+        socket.send(JSON.stringify({ mode }));
+      };
+      document.getElementById("btnToggle").onclick = () => {
+        const action = currentAction === "activer" ? "desactiver" : "activer";
+        socket.send(JSON.stringify({ mode, action }));
+        // Désactive le bouton au clic
+        document.getElementById("btnToggle").disabled = true;
+      };
+    }
+
+    function updateUI() {
+      document.getElementById("modeStatus").textContent = `État actuel : ${mode === "auto" ? "Automatique" : "Manuel"}`;
+      document.getElementById("manualPanel").style.display = mode === "manuel" ? "block" : "none";
+      document.getElementById("btnAuto").disabled = mode === "auto";
+      document.getElementById("btnManual").disabled = mode === "manuel";
+      document.getElementById("btnToggle").disabled = mode !== "manuel";
+    }
+
+    function updateGauges(entry) {
+      // utilisation de entry.valeur pour capteurs custom
+      const raw = entry.valeur ?? entry.humidity ?? entry.flow;
+      const val = parseFloat(raw);
+      if (entry.deviceName) {
+        const name = entry.deviceName.toLowerCase();
+        if (name.includes("humid")) {
+          moistureGauge.refresh(val);
+        } else if (name.includes("debit") || name.includes("débit")) {
+          flowGauge.refresh(val);
         }
+      } else {
+        if (entry.humidity !== undefined) moistureGauge.refresh(parseFloat(entry.humidity));
+        if (entry.flow !== undefined) flowGauge.refresh(parseFloat(entry.flow));
+      }
+    }
 
-        function updateUI() {
-            document.getElementById("modeStatus").textContent = `État actuel : ${mode === "auto" ? "Automatique" : "Manuel"}`;
-            document.getElementById("manualPanel").style.display = mode === "manuel" ? "block" : "none";
-            document.getElementById("btnAuto").disabled = mode === "auto";
-            document.getElementById("btnManual").disabled = mode === "manuel";
-            document.getElementById("btnToggle").disabled = mode !== "manuel";
-        }
+    function updateEtatPompe() {
+      const btn = document.getElementById("btnToggle");
+      btn.textContent = currentAction === "activer" ? "Désactiver" : "Activer";
+      document.getElementById("actionStatus").textContent = `Etat pompe : ${currentAction === "activer" ? "Activé" : "Désactivé"}`;
+    }
 
-        function updateEtatPompe() {
-            const btn = document.getElementById("btnToggle");
-            btn.textContent = currentAction === "activer" ? "Désactiver" : "Activer";
+    function updateCapteurs(entry) {
+      if (entry.capteur1 !== undefined) {
+        const b1 = document.getElementById('capteur1-bubble');
+        b1.classList.toggle('bg-green-500', entry.capteur1 === 1);
+        b1.classList.toggle('bg-red-500', entry.capteur1 === 0);
+      }
+      if (entry.capteur2 !== undefined) {
+        const b2 = document.getElementById('capteur2-bubble');
+        b2.classList.toggle('bg-green-500', entry.capteur2 === 1);
+        b2.classList.toggle('bg-red-500', entry.capteur2 === 0);
+      }
+    }
 
-            document.getElementById("actionStatus").textContent = `Etat : ${currentAction === "activer" ? "Activé" : "Désactivé"}`;
-        }
-
-        function updateGauges(entry) {
-            if (entry.deviceName) {
-                const val = parseFloat(entry.valeur);
-                const name = entry.deviceName.toLowerCase();
-                if (name.includes("humidité")) moistureGauge.refresh(val);
-                else if (name.includes("débit")) flowGauge.refresh(val);
-            } else {
-                if (entry.humidity  !== undefined) moistureGauge.refresh(entry.humidity);
-                if (entry.flow      !== undefined) flowGauge.refresh(entry.flow);
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            initWebSocket();
-            initDashboard();
-        });
-    </script>
+    document.addEventListener('DOMContentLoaded', () => {
+      initWebSocket();
+      initDashboard();
+    });
+  </script>
 </body>
 </html>

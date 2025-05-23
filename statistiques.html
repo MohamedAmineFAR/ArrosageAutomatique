@@ -1,257 +1,8 @@
-<!-- <!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Arrosage Automatique - Statistiques</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        .gradient-custom {
-            background: linear-gradient(120deg, #184e77, #1e6091);
-            background-size: 200% 200%;
-            animation: bgMove 10s ease infinite;
-        }
-
-        @keyframes bgMove {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
-        .glass-panel {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-        }
-
-        .glow-text {
-            text-shadow: 0 0 10px rgba(186, 230, 253, 0.4);
-        }
-    </style>
-</head>
-<body class="gradient-custom min-h-screen text-sky-100">
-    <header class="fixed top-0 left-0 right-0 bg-sky-900/50 backdrop-blur-md z-50">
-        <div class="container mx-auto px-6 py-4">
-            <div class="flex justify-between items-center">
-                <h1 class="text-3xl font-bold glow-text">Arrosage Automatique</h1>
-                <nav class="flex space-x-6">
-                    <a href="tableau-bord.html" class="text-sky-300 hover:text-sky-400 transition-colors">Tableau de bord</a>
-                    <button onclick="endSession()" class="text-red-400 hover:text-red-300 transition-colors">Déconnexion</button>
-                </nav>
-            </div>
-        </div>
-    </header>
-
-    <main class="pt-24 px-6 pb-6">
-        <div class="container mx-auto">
-            <div class="glass-panel rounded-xl p-6 mb-8">
-                <div class="flex flex-wrap items-center justify-between gap-4">
-                    <h2 class="text-2xl font-semibold glow-text">Analyse des données</h2>
-                    <div class="flex items-center space-x-4">
-                        <input type="number" 
-                               id="timeValue" 
-                               placeholder="Durée" 
-                               min="1"
-                               class="bg-sky-900/30 text-sky-100 placeholder-sky-300/50 px-4 py-2 rounded-lg 
-                                      focus:outline-none focus:ring-2 focus:ring-sky-500">
-                        <select id="timeUnit"
-                                class="bg-sky-900/30 text-sky-100 px-4 py-2 rounded-lg 
-                                       focus:outline-none focus:ring-2 focus:ring-sky-500">
-                            <option value="m">Minutes</option>
-                            <option value="h">Heures</option>
-                            <option value="d">Jours</option>
-                            <option value="mo">Mois</option>
-                            <option value="y">Années</option>
-                        </select>
-                        <button onclick="rafraichirDonnees()" 
-                                class="bg-sky-600 text-white px-6 py-2 rounded-lg 
-                                       hover:bg-sky-500 transition-all">
-                            Rafraîchir
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                <div class="glass-panel rounded-xl p-6">
-                    <h3 class="text-xl font-semibold mb-4 glow-text">Humidité</h3>
-                    <div class="relative h-[300px]">
-                        <canvas id="moistureChart"></canvas>
-                    </div>
-                </div>
-
-                <div class="glass-panel rounded-xl p-6">
-                    <h3 class="text-xl font-semibold mb-4 glow-text">Débit</h3>
-                    <div class="relative h-[300px]">
-                        <canvas id="flowChart"></canvas>
-                    </div>
-                </div>
-            </div>
-
-            <div class="glass-panel rounded-xl p-6">
-                <h3 class="text-xl font-semibold mb-4 glow-text">Niveau du réservoir</h3>
-                <div class="relative h-[300px]">
-                    <canvas id="levelChart"></canvas>
-                </div>
-            </div>
-        </div>
-    </main>
-
-    <script>
-        function checkSession() {
-            const token = localStorage.getItem("sessionToken");
-            if (!token) {
-                window.location.href = "connexion.html";
-            }
-            return token;
-        }
-
-        function endSession() {
-            localStorage.removeItem("sessionToken");
-            window.location.href = "connexion.html";
-        }
-
-        // Configuration des graphiques avec le thème
-        const chartConfig = {
-            type: 'line',
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        labels: {
-                            color: '#bae6fd'
-                        }
-                    }
-                },
-                scales: {
-                    x: {
-                        grid: {
-                            color: 'rgba(186, 230, 253, 0.1)'
-                        },
-                        ticks: {
-                            color: '#bae6fd'
-                        }
-                    },
-                    y: {
-                        grid: {
-                            color: 'rgba(186, 230, 253, 0.1)'
-                        },
-                        ticks: {
-                            color: '#bae6fd'
-                        }
-                    }
-                }
-            }
-        };
-
-        let moistureChart, flowChart, levelChart;
-
-        function initCharts() {
-            const ctx1 = document.getElementById('moistureChart').getContext('2d');
-            const ctx2 = document.getElementById('flowChart').getContext('2d');
-            const ctx3 = document.getElementById('levelChart').getContext('2d');
-
-            moistureChart = new Chart(ctx1, {
-                ...chartConfig,
-                data: {
-                    labels: [],
-                    datasets: [{
-                        label: 'Humidité (%)',
-                        data: [],
-                        borderColor: '#0ea5e9',
-                        tension: 0.4
-                    }]
-                }
-            });
-
-            flowChart = new Chart(ctx2, {
-                ...chartConfig,
-                data: {
-                    labels: [],
-                    datasets: [{
-                        label: 'Débit (L/min)',
-                        data: [],
-                        borderColor: '#2563eb',
-                        tension: 0.4
-                    }]
-                }
-            });
-
-            levelChart = new Chart(ctx3, {
-                ...chartConfig,
-                data: {
-                    labels: [],
-                    datasets: [{
-                        label: 'Niveau (%)',
-                        data: [],
-                        borderColor: '#7c3aed',
-                        tension: 0.4
-                    }]
-                }
-            });
-        }
-
-        async function rafraichirDonnees() {
-            const timeValue = document.getElementById('timeValue').value;
-            const timeUnit = document.getElementById('timeUnit').value;
-            const token = checkSession();
-            const data = {
-            duree: timeValue,
-            unite: timeUnit
-            };
-
-            fetch('https://api.arrosage.cielnewton.fr/bdd', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json',  
-                },
-                body: JSON.stringify(data),
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log('Données reçues:', data);
-            })
-            .catch(error => {
-                console.error('Erreur:', error);
-            });
-        }
-
-        function updateCharts(data) {
-            const timestamps = data.map(d => new Date(d.date).toLocaleTimeString());
-            const humidityData = data.map(d => d.humidite);
-            const flowData = data.map(d => d.debit);
-            const levelData = data.map(d => d.niveau);
-
-            moistureChart.data.labels = timestamps;
-            moistureChart.data.datasets[0].data = humidityData;
-            moistureChart.update();
-
-            flowChart.data.labels = timestamps;
-            flowChart.data.datasets[0].data = flowData;
-            flowChart.update();
-
-            levelChart.data.labels = timestamps;
-            levelChart.data.datasets[0].data = levelData;
-            levelChart.update();
-        }
-
-        // Initialisation
-        checkSession();
-        initCharts();
-    </script>
-</body>
-</html> -->
-
-
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Arrosage Automatique - Statistiques</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -312,6 +63,7 @@
             <option value="m">Minutes</option>
             <option value="h">Heures</option>
             <option value="d">Jours</option>
+            <option value="w">Semaines</option>
             <option value="mo">Mois</option>
             <option value="y">Années</option>
           </select>
@@ -341,8 +93,6 @@
 
       </div>
 
-      <!-- Activity Log or other sections can go here -->
-
     </div>
   </main>
 
@@ -368,12 +118,58 @@
         maintainAspectRatio: false,
         plugins: {
           legend: {
-            labels: { color: '#bae6fd' }
+            labels: { color: '#bae6fd', font: { size: 14 } }
+          },
+          tooltip: {
+            enabled: true,
+            mode: 'nearest',
+            intersect: false,
+            backgroundColor: 'rgba(10, 132, 255, 0.8)',
+            titleColor: '#fff',
+            bodyColor: '#fff',
+            cornerRadius: 4,
+            padding: 8,
+            callbacks: {
+              label: function(context) {
+                let label = context.dataset.label || '';
+                if (label) {
+                  label += ': ';
+                }
+                label += context.parsed.y;
+                if (context.dataset.label.includes('Humidité')) label += ' %';
+                else if (context.dataset.label.includes('Débit')) label += ' L/min';
+                return label;
+              }
+            }
           }
         },
         scales: {
-          x: { grid: { color: 'rgba(186, 230, 253, 0.1)' }, ticks: { color: '#bae6fd' } },
-          y: { grid: { color: 'rgba(186, 230, 253, 0.1)' }, ticks: { color: '#bae6fd' } }
+          x: {
+            grid: { color: 'rgba(186, 230, 253, 0.1)' },
+            ticks: {
+              color: '#dbeafe',           // couleur bleu clair plus visible
+              font: { size: 12 },         // police plus grande
+              maxRotation: 30,            // rotation moins raide
+              minRotation: 30,
+              autoSkip: true,
+              maxTicksLimit: 8,           // limiter à 8 ticks
+              callback: function(value, index, ticks) {
+                const date = new Date(this.getLabelForValue(value));
+                if (!isNaN(date)) {
+                  // Affiche en format HH:mm
+                  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                }
+                return this.getLabelForValue(value);
+              }
+            }
+          },
+          y: {
+            grid: { color: 'rgba(186, 230, 253, 0.1)' },
+            ticks: {
+              color: '#dbeafe',
+              font: { size: 12 }
+            }
+          }
         }
       }
     };
@@ -406,7 +202,7 @@
       const timeUnit  = document.getElementById('timeUnit').value;
       const token     = checkSession();
 
-      fetch('http://192.168.5.199:3005/Bdd', {
+      fetch('http://192.168.5.199:3005/bdd', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -420,16 +216,34 @@
     }
 
     function updateCharts(data) {
-      const labels        = data.map(d => new Date(d._time).toLocaleTimeString());
-      const humidity      = data.filter(d => d._field === 'Humidité').map(d => d._value);
-      const flow          = data.filter(d => d._field === 'Débit').map(d => d._value);
+      // Extraire labels uniques ordonnés
+      const uniqueTimesSet = new Set(data.map(d => d._time));
+      const labels = Array.from(uniqueTimesSet).map(t => new Date(t).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
 
-      moistureChart.data.labels           = labels;
-      moistureChart.data.datasets[0].data = humidity;
+      const humidityMap = new Map();
+      const flowMap = new Map();
+
+      data.forEach(d => {
+        if (d._field === 'Humidité') humidityMap.set(d._time, d._value);
+        else if (d._field === 'Débit') flowMap.set(d._time, d._value);
+      });
+
+      const humidityData = labels.map((label, i) => {
+        const originalTime = Array.from(uniqueTimesSet)[i];
+        return humidityMap.has(originalTime) ? humidityMap.get(originalTime) : null;
+      });
+
+      const flowData = labels.map((label, i) => {
+        const originalTime = Array.from(uniqueTimesSet)[i];
+        return flowMap.has(originalTime) ? flowMap.get(originalTime) : null;
+      });
+
+      moistureChart.data.labels = labels;
+      moistureChart.data.datasets[0].data = humidityData;
       moistureChart.update();
 
-      flowChart.data.labels           = labels;
-      flowChart.data.datasets[0].data = flow;
+      flowChart.data.labels = labels;
+      flowChart.data.datasets[0].data = flowData;
       flowChart.update();
     }
 

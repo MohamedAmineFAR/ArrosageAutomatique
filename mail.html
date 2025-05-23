@@ -47,7 +47,7 @@
       <h1 class="text-3xl font-bold glow-text">Arrosage Automatique</h1>
       <nav class="flex space-x-6">
         <a href="statistiques.html" class="text-sky-300 hover:text-sky-400">Statistiques</a>
-        <a href="mail.html" class="text-sky-300 hover:text-sky-400">Mail</a>
+        <a href="tableau-bord.html" class="text-sky-300 hover:text-sky-400">Tableau de bord</a>
         <a href="changerMDP.html" class="text-sky-300 hover:text-sky-400">Changer mot de passe</a>
         <button onclick="endSession()" class="text-red-400 hover:text-red-300">Déconnexion</button>
       </nav>
@@ -69,7 +69,7 @@
               type="email"
               id="email"
               name="email"
-              placeholder="utilisateur@example.com"
+              placeholder="utilisateur@exemple.com"
               required
               class="w-full p-2 rounded bg-sky-800 bg-opacity-50 border border-sky-400 focus:outline-none"
             />
@@ -123,7 +123,7 @@
       const token = checkSession();
       const payload = { mail: email };
 
-      fetch('http://192.168.5.199:3005/Mail', {
+      fetch('http://192.168.5.199:3005/mail', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
