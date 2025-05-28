@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Arrosage Automatique - Tableau de bord</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/raphael@2.3.0/raphael.min.js"></script>
@@ -26,10 +26,24 @@
     .glow-text {
       text-shadow: 0 0 10px rgba(186, 230, 253, 0.4);
     }
+    #moistureGauge, #flowGauge {
+      width: 100%;
+      min-height: 150px;
+    }
+    @media (max-width: 768px) {
+      header .container { flex-direction: column; align-items: flex-start; }
+      header nav { margin-top: 8px; flex-wrap: wrap; justify-content: flex-start; }
+      main .container { padding: 0 1rem; }
+      .grid-cols-3 { grid-template-columns: 1fr !important; }
+      .flex-wrap.gap-4 { flex-direction: column; gap: 0.5rem; }
+      .glass-panel .flex.gap-4 { flex-direction: column; gap: 0.5rem; }
+      .glass-panel .flex.flex-wrap.gap-4.items-center.justify-between {
+        flex-direction: column; align-items: flex-start; gap: 0.5rem;
+      }
+    }
   </style>
 </head>
 <body class="gradient-custom min-h-screen text-sky-100">
-  <!-- Header -->
   <header class="fixed top-0 left-0 right-0 bg-sky-900/50 backdrop-blur-md z-50">
     <div class="container mx-auto px-6 py-4 flex justify-between items-center">
       <h1 class="text-3xl font-bold glow-text">Arrosage Automatique</h1>
@@ -42,11 +56,8 @@
     </div>
   </header>
 
-  <!-- Main Content -->
   <main class="pt-24 px-6 pb-6">
     <div class="container mx-auto">
-
-      <!-- Control Panel -->
       <div class="glass-panel rounded-xl p-6 mb-8">
         <div class="flex flex-wrap gap-4 items-center justify-between">
           <div class="space-y-2">
@@ -64,19 +75,15 @@
         </div>
       </div>
 
-      <!-- Gauges and Sensor Panel -->
       <div class="grid grid-cols-3 gap-8 mb-8">
-
         <div class="glass-panel rounded-xl p-6">
           <h3 class="text-lg font-semibold mb-4 glow-text">Niveau d'humidité</h3>
           <div id="moistureGauge"></div>
         </div>
-
         <div class="glass-panel rounded-xl p-6">
-          <h3 class="text-lg font-semibold mb-4 glow-text">Débit d'eau</h3>
+          <h3 class="text-lg font-semibold mb-4 glow-text">Dernière consommation</h3>
           <div id="flowGauge"></div>
         </div>
-
         <div class="glass-panel rounded-xl p-6">
           <h3 class="text-lg font-semibold mb-4 glow-text">Niveau d'eau</h3>
           <div class="flex flex-col space-y-4 mt-4">
@@ -90,19 +97,15 @@
             </div>
           </div>
         </div>
-
       </div>
 
-      <!-- Activity Log -->
       <div class="glass-panel rounded-xl p-6 mt-8">
         <h2 class="text-xl font-semibold mb-4 glow-text">Journal d'activité</h2>
         <div id="logContainer" class="h-64 overflow-y-auto space-y-2 font-mono text-sm"></div>
       </div>
-
     </div>
   </main>
 
-  <!-- Scripts -->
   <script>
     let socket = null;
     let mode = "auto";
@@ -122,10 +125,15 @@
 
     function initWebSocket() {
       const token = checkSession();
-      socket = new WebSocket('ws://localhost:3007');
+      socket = new WebSocket('wss://arrosage.cielnewton.fr/ws');
       socket.onopen = () => {
         console.log("WebSocket connectée");
         socket.send(JSON.stringify({ type: "auth", token }));
+        setInterval(() => {
+          if (socket.readyState === WebSocket.OPEN) {
+            socket.send(JSON.stringify({ type: "ping" }));
+          }
+        }, 50000);
       };
       socket.onmessage = (event) => {
         if (event.data instanceof Blob) {
@@ -155,10 +163,8 @@
         if (msg.etat) {
           currentAction = msg.etat;
           updateEtatPompe();
-          // On réactive le bouton dès qu'on reçoit la confirmation du serveur
           document.getElementById("btnToggle").disabled = false;
         }
-        // Gérer anciennes et nouvelles clés
         const entries = msg.dernieresDonnees || msg.donnees || msg['données'];
         if (Array.isArray(entries)) {
           entries.forEach(updateEntry);
@@ -177,11 +183,11 @@
 
     function initDashboard() {
       const gaugeConfig = {
-        width: 300,
         height: 200,
         valueFontColor: "#bae6fd",
         labelFontColor: "#bae6fd",
-        gaugeColor: "#082f49"
+        gaugeColor: "#082f49",
+        relativeGaugeSize: true
       };
 
       moistureGauge = new JustGage({
@@ -199,9 +205,9 @@
         id: "flowGauge",
         value: 0,
         min: 0,
-        max: 200,
-        title: "Débit",
-        label: "L/min"
+        max: 100,
+        title: "Dernière consommation",
+        label: "L"
       });
 
       document.getElementById("btnAuto").onclick = () => {
@@ -217,7 +223,6 @@
       document.getElementById("btnToggle").onclick = () => {
         const action = currentAction === "activer" ? "desactiver" : "activer";
         socket.send(JSON.stringify({ mode, action }));
-        // Désactive le bouton au clic
         document.getElementById("btnToggle").disabled = true;
       };
     }
@@ -231,7 +236,6 @@
     }
 
     function updateGauges(entry) {
-      // utilisation de entry.valeur pour capteurs custom
       const raw = entry.valeur ?? entry.humidity ?? entry.flow;
       const val = parseFloat(raw);
       if (entry.deviceName) {
@@ -265,6 +269,11 @@
         b2.classList.toggle('bg-red-500', entry.capteur2 === 0);
       }
     }
+
+    window.addEventListener('resize', () => {
+      if (moistureGauge) moistureGauge.refresh(moistureGauge.config.value);
+      if (flowGauge) flowGauge.refresh(flowGauge.config.value);
+    });
 
     document.addEventListener('DOMContentLoaded', () => {
       initWebSocket();

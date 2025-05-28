@@ -1,37 +1,39 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Arrosage Automatique - Statistiques</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <style>
-    .gradient-custom {
-      background: linear-gradient(120deg, #184e77, #1e6091);
-      background-size: 200% 200%;
-      animation: bgMove 10s ease infinite;
-    }
-
-    @keyframes bgMove {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
-
-    .glass-panel {
-      background: rgba(255, 255, 255, 0.1);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-    }
-
-    .glow-text {
-      text-shadow: 0 0 10px rgba(186, 230, 253, 0.4);
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Arrosage Automatique - Statistiques</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  .gradient-custom {
+    background: linear-gradient(120deg, #184e77, #1e6091);
+    background-size: 200% 200%;
+    animation: bgMove 10s ease infinite;
+  }
+  @keyframes bgMove {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+  .glass-panel {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  }
+  .glow-text {
+    text-shadow: 0 0 10px rgba(186, 230, 253, 0.4);
+  }
+  canvas {
+    width: 100% !important;
+    height: auto !important;
+    max-height: 300px;
+  }
+</style>
 </head>
-<body class="gradient-custom min-h-screen text-sky-100">
 
+<body class="gradient-custom min-h-screen text-sky-100">
   <!-- Header -->
   <header class="fixed top-0 left-0 right-0 bg-sky-900/50 backdrop-blur-md z-50">
     <div class="container mx-auto px-6 py-4 flex justify-between items-center">
@@ -48,18 +50,14 @@
   <!-- Main Content -->
   <main class="pt-24 px-6 pb-6">
     <div class="container mx-auto">
-
       <!-- Controls -->
       <div class="glass-panel rounded-xl p-6 mb-8 flex flex-wrap items-center justify-between gap-4">
         <h2 class="text-2xl font-semibold glow-text">Analyse des données</h2>
-        <div class="flex items-center space-x-4">
-          <input type="number"
-                 id="timeValue"
-                 placeholder="Durée"
-                 min="1"
-                 class="bg-sky-900/30 text-sky-100 placeholder-sky-300/50 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500" />
+        <div class="flex flex-wrap gap-4">
+          <input type="number" id="timeValue" placeholder="Durée" min="1"
+            class="bg-sky-900/30 text-sky-100 placeholder-sky-300/50 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500" />
           <select id="timeUnit"
-                  class="bg-sky-900/30 text-sky-100 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500">
+            class="bg-sky-900/30 text-sky-100 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500">
             <option value="m">Minutes</option>
             <option value="h">Heures</option>
             <option value="d">Jours</option>
@@ -68,7 +66,7 @@
             <option value="y">Années</option>
           </select>
           <button onclick="rafraichirDonnees()"
-                  class="bg-sky-600 text-white px-6 py-2 rounded-lg hover:bg-sky-500 transition-all">
+            class="bg-sky-600 text-white px-6 py-2 rounded-lg hover:bg-sky-500 transition-all">
             Rafraîchir
           </button>
         </div>
@@ -76,23 +74,20 @@
 
       <!-- Charts -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-
         <div class="glass-panel rounded-xl p-6">
-          <h3 class="text-xl font-semibold mb-4 glow-text">Humidité</h3>
-          <div class="relative h-[300px]">
+          <h3 class="text-xl font-semibold mb-4 glow-text">Humidité (%)</h3>
+          <div class="relative">
             <canvas id="moistureChart"></canvas>
           </div>
         </div>
 
         <div class="glass-panel rounded-xl p-6">
-          <h3 class="text-xl font-semibold mb-4 glow-text">Débit</h3>
-          <div class="relative h-[300px]">
+          <h3 class="text-xl font-semibold mb-4 glow-text">Dernière consommation (L)</h3>
+          <div class="relative">
             <canvas id="flowChart"></canvas>
           </div>
         </div>
-
       </div>
-
     </div>
   </main>
 
@@ -105,9 +100,7 @@
 
     function checkSession() {
       const token = localStorage.getItem("sessionToken");
-      if (!token) {
-        window.location.href = "connexion.html";
-      }
+      if (!token) window.location.href = "connexion.html";
       return token;
     }
 
@@ -117,47 +110,27 @@
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          legend: {
-            labels: { color: '#bae6fd', font: { size: 14 } }
-          },
+          legend: { labels: { color: '#bae6fd', font: { size: 14 } } },
           tooltip: {
             enabled: true,
-            mode: 'nearest',
-            intersect: false,
-            backgroundColor: 'rgba(10, 132, 255, 0.8)',
+            backgroundColor: '#1e3a8a',
             titleColor: '#fff',
             bodyColor: '#fff',
             cornerRadius: 4,
-            padding: 8,
-            callbacks: {
-              label: function(context) {
-                let label = context.dataset.label || '';
-                if (label) {
-                  label += ': ';
-                }
-                label += context.parsed.y;
-                if (context.dataset.label.includes('Humidité')) label += ' %';
-                else if (context.dataset.label.includes('Débit')) label += ' L/min';
-                return label;
-              }
-            }
-          }
+            padding: 8
+          },
+          title: { display: true, text: '', color: '#dbeafe', font: { size: 16 } }
         },
+        elements: { line: { borderWidth: 2 }, point: { radius: 3 } },
         scales: {
           x: {
             grid: { color: 'rgba(186, 230, 253, 0.1)' },
             ticks: {
-              color: '#dbeafe',           // couleur bleu clair plus visible
-              font: { size: 12 },         // police plus grande
-              maxRotation: 30,            // rotation moins raide
-              minRotation: 30,
-              autoSkip: true,
-              maxTicksLimit: 8,           // limiter à 8 ticks
-              callback: function(value, index, ticks) {
+              color: '#dbeafe', font: { size: 12 }, maxRotation: 30, minRotation: 30,
+              callback: function(value) {
                 const date = new Date(this.getLabelForValue(value));
                 if (!isNaN(date)) {
-                  // Affiche en format HH:mm
-                  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                  return date.toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
                 }
                 return this.getLabelForValue(value);
               }
@@ -165,10 +138,7 @@
           },
           y: {
             grid: { color: 'rgba(186, 230, 253, 0.1)' },
-            ticks: {
-              color: '#dbeafe',
-              font: { size: 12 }
-            }
+            ticks: { color: '#dbeafe', font: { size: 12 } }
           }
         }
       }
@@ -182,32 +152,25 @@
 
       moistureChart = new Chart(ctx1, {
         ...chartConfig,
-        data: {
-          labels: [],
-          datasets: [{ label: 'Humidité (%)', data: [], borderColor: '#0ea5e9', tension: 0.4 }]
-        }
+        options: { ...chartConfig.options, plugins: { ...chartConfig.options.plugins, title: { ...chartConfig.options.plugins.title, text: 'Humidité (%)' } } },
+        data: { labels: [], datasets: [{ label: 'Humidité', data: [], borderColor: '#0ea5e9', backgroundColor: 'rgba(14, 165, 233, 0.1)', tension: 0.4 }] }
       });
 
       flowChart = new Chart(ctx2, {
         ...chartConfig,
-        data: {
-          labels: [],
-          datasets: [{ label: 'Débit (L/min)', data: [], borderColor: '#2563eb', tension: 0.4 }]
-        }
+        options: { ...chartConfig.options, plugins: { ...chartConfig.options.plugins, title: { ...chartConfig.options.plugins.title, text: 'Dernière consommation (L)' } } },
+        data: { labels: [], datasets: [{ label: 'Dernière consommation', data: [], borderColor: '#2563eb', backgroundColor: 'rgba(37, 99, 235, 0.1)', tension: 0.4 }] }
       });
     }
 
     function rafraichirDonnees() {
       const timeValue = document.getElementById('timeValue').value;
-      const timeUnit  = document.getElementById('timeUnit').value;
-      const token     = checkSession();
+      const timeUnit = document.getElementById('timeUnit').value;
+      const token = checkSession();
 
-      fetch('http://192.168.5.199:3005/bdd', {
+      fetch('https://api.arrosage.cielnewton.fr/bdd', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ duree: timeValue, unite: timeUnit })
       })
       .then(res => res.json())
@@ -216,9 +179,8 @@
     }
 
     function updateCharts(data) {
-      // Extraire labels uniques ordonnés
-      const uniqueTimesSet = new Set(data.map(d => d._time));
-      const labels = Array.from(uniqueTimesSet).map(t => new Date(t).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+      const uniqueTimes = [...new Set(data.map(d => d._time))];
+      const labels = uniqueTimes.map(t => new Date(t).toISOString());
 
       const humidityMap = new Map();
       const flowMap = new Map();
@@ -228,15 +190,8 @@
         else if (d._field === 'Débit') flowMap.set(d._time, d._value);
       });
 
-      const humidityData = labels.map((label, i) => {
-        const originalTime = Array.from(uniqueTimesSet)[i];
-        return humidityMap.has(originalTime) ? humidityMap.get(originalTime) : null;
-      });
-
-      const flowData = labels.map((label, i) => {
-        const originalTime = Array.from(uniqueTimesSet)[i];
-        return flowMap.has(originalTime) ? flowMap.get(originalTime) : null;
-      });
+      const humidityData = uniqueTimes.map(t => humidityMap.get(t) || null);
+      const flowData = uniqueTimes.map(t => flowMap.get(t) || null);
 
       moistureChart.data.labels = labels;
       moistureChart.data.datasets[0].data = humidityData;
@@ -247,10 +202,8 @@
       flowChart.update();
     }
 
-    // Initialisation
     checkSession();
     initCharts();
   </script>
-
 </body>
 </html>

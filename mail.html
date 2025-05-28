@@ -37,6 +37,44 @@
       color: #080;
       font-size: 0.9rem;
     }
+
+    /* Ajout de la réactivité */
+    @media (max-width: 640px) {
+      header .container {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      header nav {
+        margin-top: 8px;
+        flex-wrap: wrap;
+        justify-content: flex-start;
+      }
+
+      main .container {
+        padding: 0 1rem;
+      }
+
+      h1 {
+        font-size: 1.5rem;
+      }
+
+      h2 {
+        font-size: 1.25rem;
+      }
+
+      h3 {
+        font-size: 1rem;
+      }
+
+      button[type="submit"] {
+        padding: 0.5rem;
+      }
+
+      .glass-panel {
+        padding: 1.5rem;
+      }
+    }
   </style>
 </head>
 <body class="gradient-custom min-h-screen text-sky-100">
@@ -123,7 +161,7 @@
       const token = checkSession();
       const payload = { mail: email };
 
-      fetch('http://192.168.5.199:3005/mail', {
+      fetch('https://api.arrosage.cielnewton.fr/mail', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

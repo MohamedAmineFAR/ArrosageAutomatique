@@ -8,13 +8,14 @@ const wsServer = new WebSocket.Server({
   clientTracking: true
 });
 
-const remoteEndpoint = 'ws://192.168.5.199:3006/ws';
+const remoteEndpoint = 'wss://api.arrosage.cielnewton.fr/ws';
 
 wsServer.on('connection', (clientWs, req) => {
   console.log(' Nouvelle connexion client');
 
   let remoteWs = null;
   let tokenRecu = false;
+  let pingInterval = null;
 
   clientWs.on('message', (message) => {
     try {
@@ -38,12 +39,20 @@ wsServer.on('connection', (clientWs, req) => {
           followRedirects: true
         });
 
-        remoteWs.on('open', (msg) => {
+        remoteWs.on('open', () => {
           console.log(' Connexion établie avec la WebSocket distante');
+
+          // Ping toutes les 50 secondes pour maintenir la connexion
+          pingInterval = setInterval(() => {
+            if (remoteWs.readyState === WebSocket.OPEN) {
+             // console.log(' ⏰ Envoi d’un ping à la WebSocket distante');
+              remoteWs.ping();
+            }
+          }, 50000);
         });
 
         remoteWs.on('message', (msg) => {
-            console.log(msg)
+          console.log(msg);
           if (clientWs.readyState === WebSocket.OPEN) {
             clientWs.send(msg);
           }
@@ -52,11 +61,13 @@ wsServer.on('connection', (clientWs, req) => {
         remoteWs.on('close', () => {
           console.log(' WebSocket distante fermée');
           if (clientWs.readyState === WebSocket.OPEN) clientWs.close();
+          clearInterval(pingInterval);
         });
 
         remoteWs.on('error', (err) => {
           console.error(' Erreur WebSocket distante :', err.message);
           if (clientWs.readyState === WebSocket.OPEN) clientWs.close();
+          clearInterval(pingInterval);
         });
 
       } else if (tokenRecu && remoteWs?.readyState === WebSocket.OPEN) {
@@ -74,6 +85,7 @@ wsServer.on('connection', (clientWs, req) => {
   clientWs.on('close', () => {
     console.log(' Client WebSocket déconnecté');
     if (remoteWs && remoteWs.readyState === WebSocket.OPEN) remoteWs.close();
+    clearInterval(pingInterval);
   });
 
   clientWs.on('error', (err) => {
