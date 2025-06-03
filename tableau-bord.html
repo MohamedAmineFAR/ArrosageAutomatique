@@ -129,11 +129,7 @@
       socket.onopen = () => {
         console.log("WebSocket connectée");
         socket.send(JSON.stringify({ type: "auth", token }));
-        setInterval(() => {
-          if (socket.readyState === WebSocket.OPEN) {
-            socket.send(JSON.stringify({ type: "ping" }));
-          }
-        }, 50000);
+        // Actualise directement les jauges et capteurs au premier message reçu
       };
       socket.onmessage = (event) => {
         if (event.data instanceof Blob) {
@@ -156,27 +152,22 @@
       try {
         const msg = JSON.parse(message);
 
-        if (msg.mode) {
-          mode = msg.mode;
-          updateUI();
-        }
-        if (msg.etat) {
-          currentAction = msg.etat;
-          updateEtatPompe();
-          document.getElementById("btnToggle").disabled = false;
-        }
+        // Mise à jour directe à la réception
+        if (msg.mode) mode = msg.mode;
+        if (msg.etat) currentAction = msg.etat;
+        updateUI();
+        updateEtatPompe();
+
         const entries = msg.dernieresDonnees || msg.donnees || msg['données'];
-        if (Array.isArray(entries)) {
-          entries.forEach(updateEntry);
-        } else if (entries) {
-          updateEntry(entries);
-        }
+        if (Array.isArray(entries)) entries.forEach(updateEntry);
+        else if (entries) updateEntry(entries);
       } catch (e) {
         console.warn("Message invalide :", message);
       }
     }
 
     function updateEntry(entry) {
+      if (!entry) return;
       updateCapteurs(entry);
       updateGauges(entry);
     }
@@ -191,34 +182,18 @@
       };
 
       moistureGauge = new JustGage({
-        ...gaugeConfig,
-        id: "moistureGauge",
-        value: 0,
-        min: 0,
-        max: 100,
-        title: "Humidité",
-        label: "%"
+        ...gaugeConfig, id: "moistureGauge", value: 0, min: 0, max: 100, title: "Humidité", label: "%"
       });
 
       flowGauge = new JustGage({
-        ...gaugeConfig,
-        id: "flowGauge",
-        value: 0,
-        min: 0,
-        max: 100,
-        title: "Dernière consommation",
-        label: "L"
+        ...gaugeConfig, id: "flowGauge", value: 0, min: 0, max: 100, title: "Dernière consommation", label: "L"
       });
 
       document.getElementById("btnAuto").onclick = () => {
-        mode = "auto";
-        updateUI();
-        socket.send(JSON.stringify({ mode }));
+        mode = "auto"; updateUI(); socket.send(JSON.stringify({ mode }));
       };
       document.getElementById("btnManual").onclick = () => {
-        mode = "manuel";
-        updateUI();
-        socket.send(JSON.stringify({ mode }));
+        mode = "manuel"; updateUI(); socket.send(JSON.stringify({ mode }));
       };
       document.getElementById("btnToggle").onclick = () => {
         const action = currentAction === "activer" ? "desactiver" : "activer";
@@ -236,15 +211,11 @@
     }
 
     function updateGauges(entry) {
-      const raw = entry.valeur ?? entry.humidity ?? entry.flow;
-      const val = parseFloat(raw);
+      const val = parseFloat(entry.valeur ?? entry.humidity ?? entry.flow);
       if (entry.deviceName) {
         const name = entry.deviceName.toLowerCase();
-        if (name.includes("humid")) {
-          moistureGauge.refresh(val);
-        } else if (name.includes("debit") || name.includes("débit")) {
-          flowGauge.refresh(val);
-        }
+        if (name.includes("humid")) moistureGauge.refresh(val);
+        else if (name.includes("debit") || name.includes("débit")) flowGauge.refresh(val);
       } else {
         if (entry.humidity !== undefined) moistureGauge.refresh(parseFloat(entry.humidity));
         if (entry.flow !== undefined) flowGauge.refresh(parseFloat(entry.flow));

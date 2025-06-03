@@ -38,7 +38,6 @@
       font-size: 0.9rem;
     }
 
-    /* Ajout de la réactivité */
     @media (max-width: 640px) {
       header .container {
         flex-direction: column;
@@ -143,6 +142,11 @@
       }
       return token;
     }
+
+    // ✅ Vérifie la session dès le chargement de la page
+    document.addEventListener('DOMContentLoaded', () => {
+      checkSession();
+    });
 
     document.getElementById('mailForm').addEventListener('submit', function(e) {
       e.preventDefault();
